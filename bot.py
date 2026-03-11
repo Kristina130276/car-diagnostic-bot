@@ -49,7 +49,7 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 app.add_handler(MessageHandler(filters.TEXT, handle_text))
 
-app.run_polling()
+app.run_polling(close_loop=False)
 import time
 while True:
     time.sleep(10)
