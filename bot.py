@@ -50,3 +50,6 @@ app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 app.add_handler(MessageHandler(filters.TEXT, handle_text))
 
 app.run_polling()
+import time
+while True:
+    time.sleep(10)
