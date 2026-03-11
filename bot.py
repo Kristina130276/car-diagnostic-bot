@@ -1,53 +1,53 @@
 import os
+import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = """
-שלום 👋
-אני בוט לאבחון תקלות ברכב.
-
-שלחו:
-• צילום של לוח המחוונים
-או
-• קוד תקלה (לדוגמה: U3000)
-
-ואנסה להסביר מה התקלה.
-"""
-    await update.message.reply_text(text)
-
-async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "קיבלתי את התמונה 📷\n\nבגרסה הבאה אנסה לזהות את התקלה מהצילום."
+        "שלום 👋\n"
+        "אני בוט לאבחון תקלות ברכב.\n\n"
+        "שלחו צילום של לוח המחוונים או קוד תקלה."
     )
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    code = update.message.text.upper()
+    text = update.message.text
 
-    if "U3000" in code:
-        response = """
-קוד תקלה: U3000
-
-משמעות אפשרית:
-תקלה במודול בקרת ABS או בעיית תקשורת במערכת.
-
-מה לבדוק:
-• מתח מצבר
-• חיבורים למודול ABS
-• חיישני גלגל
-"""
+    if "U3000" in text.upper():
+        await update.message.reply_text(
+            "קוד תקלה: U3000\n\n"
+            "משמעות אפשרית:\n"
+            "תקלה במודול ABS או בעיית תקשורת.\n\n"
+            "מה לבדוק:\n"
+            "• מתח מצבר\n"
+            "• חיבורים למודול ABS\n"
+            "• חיישני גלגל"
+        )
     else:
-        response = "קיבלתי את הקוד. בהמשך אחפש אותו במסד הנתונים."
+        await update.message.reply_text(f"קיבלתי: {text}")
 
-    await update.message.reply_text(response)
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("קיבלתי את התמונה 📷")
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+def main():
+    if not BOT_TOKEN:
+        raise ValueError("BOT_TOKEN is missing")
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-app.add_handler(MessageHandler(filters.TEXT, handle_text))
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.run_polling()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
+    print("Bot is starting...")
+    app.run_polling(drop_pending_updates=True)
+
+if __name__ == "__main__":
+    main()
